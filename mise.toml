@@ -1,0 +1,3 @@
+[tools]
+cargo-dist = "latest"
+"github:axodotdev/oranda" = "latest"
