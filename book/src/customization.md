@@ -266,6 +266,115 @@ All fields can be combined:
 
 </details>
 
+## Value formatting
+
+Use `format` to control how values appear in tooltips and y-axis ticks:
+
+```uplot
+{
+  "type": "line",
+  "labels": ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
+  "datasets": [
+    { "label": "Revenue", "data": [12.5, 18.3, 15.7, 22.1, 19.8, 25.4], "color": "#2ca02c" }
+  ],
+  "format": { "prefix": "$", "suffix": "k", "decimals": 1 }
+}
+```
+
+<details>
+<summary>Show code</summary>
+
+````markdown
+```uplot
+{
+  "type": "line",
+  "labels": ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
+  "datasets": [
+    { "label": "Revenue", "data": [12.5, 18.3, 15.7, 22.1, 19.8, 25.4], "color": "#2ca02c" }
+  ],
+  "format": { "prefix": "$", "suffix": "k", "decimals": 1 }
+}
+```
+````
+
+</details>
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `format.decimals` | number | Decimal places (default: 2) |
+| `format.prefix` | string | Prepended to values (e.g. `"$"`) |
+| `format.suffix` | string | Appended to values (e.g. `"%"`, `"°C"`) |
+
+Per-dataset `format` overrides the global one:
+
+```uplot
+{
+  "type": "bar",
+  "labels": ["US", "EU", "Asia"],
+  "datasets": [
+    { "label": "Revenue", "data": [42, 38, 55], "color": "#1f77b4", "format": { "prefix": "$", "suffix": "M", "decimals": 0 } },
+    { "label": "Growth", "data": [12.3, 8.7, 15.1], "color": "#ff7f0e", "format": { "suffix": "%", "decimals": 1 } }
+  ]
+}
+```
+
+<details>
+<summary>Show code</summary>
+
+````markdown
+```uplot
+{
+  "type": "bar",
+  "labels": ["US", "EU", "Asia"],
+  "datasets": [
+    { "label": "Revenue", "data": [42, 38, 55], "color": "#1f77b4", "format": { "prefix": "$", "suffix": "M", "decimals": 0 } },
+    { "label": "Growth", "data": [12.3, 8.7, 15.1], "color": "#ff7f0e", "format": { "suffix": "%", "decimals": 1 } }
+  ]
+}
+```
+````
+
+</details>
+
+## Show all series in tooltip
+
+By default the tooltip shows only the nearest series. Use `"tooltip": { "all": true }` to show all series at the cursor position:
+
+```uplot
+{
+  "type": "line",
+  "labels": [1, 2, 3, 4, 5, 6],
+  "datasets": [
+    { "label": "CPU", "data": [30, 45, 55, 40, 60, 50], "color": "#1f77b4" },
+    { "label": "Memory", "data": [50, 55, 60, 58, 65, 62], "color": "#ff7f0e" },
+    { "label": "Disk", "data": [10, 15, 20, 12, 18, 22], "color": "#d62728" }
+  ],
+  "tooltip": { "all": true },
+  "format": { "suffix": "%", "decimals": 0 }
+}
+```
+
+<details>
+<summary>Show code</summary>
+
+````markdown
+```uplot
+{
+  "type": "line",
+  "labels": [1, 2, 3, 4, 5, 6],
+  "datasets": [
+    { "label": "CPU", "data": [30, 45, 55, 40, 60, 50], "color": "#1f77b4" },
+    { "label": "Memory", "data": [50, 55, 60, 58, 65, 62], "color": "#ff7f0e" },
+    { "label": "Disk", "data": [10, 15, 20, 12, 18, 22], "color": "#d62728" }
+  ],
+  "tooltip": { "all": true },
+  "format": { "suffix": "%", "decimals": 0 }
+}
+```
+````
+
+</details>
+
 ## Advanced: `opts` reference
 
 The `opts` field is deep-merged into the uPlot configuration before chart creation. Any valid [uPlot option](https://github.com/leeoniya/uPlot/blob/master/dist/uPlot.d.ts) can be passed here, including `cursor`, `scales`, `axes`, `select`, and more.

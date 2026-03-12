@@ -31,12 +31,21 @@
     }
   }
 
+  function fmtVal(val, fmt) {
+    if (!fmt) return val.toFixed(2);
+    var s = val.toFixed(fmt.decimals != null ? fmt.decimals : 2);
+    if (fmt.prefix) s = fmt.prefix + s;
+    if (fmt.suffix) s = s + fmt.suffix;
+    return s;
+  }
+
   function renderChart(container, json, type) {
     var labels = json.labels || [];
     var datasets = json.datasets || [];
     var title = json.title || "";
     var xLabel = (json.axes && json.axes.x) || "";
     var yLabel = (json.axes && json.axes.y) || "";
+    var globalFmt = json.format || null;
 
     if (labels.length === 0 || datasets.length === 0) {
       container.innerHTML = "<p><em>No data available.</em></p>";
@@ -51,11 +60,13 @@
     var uData = type === "bar" ? [labels] : [xValues];
     var uSeries = [{ label: xLabel || "x" }];
 
+    var dsFmts = [];
     for (var i = 0; i < datasets.length; i++) {
       var ds = datasets[i];
       var color = ds.color || nextColor(i);
       uData.push(ds.data || labels.map(function () { return null; }));
       uSeries.push(buildSeries(ds, color, type, i));
+      dsFmts.push(ds.format || globalFmt);
     }
 
     var theme = detectTheme();
@@ -72,23 +83,30 @@
       xAxis.space = function () { return 80; };
     }
 
+    var yAxis = {
+      stroke: theme.text,
+      label: yLabel,
+      ticks: { stroke: theme.grid },
+      grid: { stroke: theme.grid },
+    };
+    if (globalFmt) {
+      yAxis.values = function (u, splits) {
+        return splits.map(function (v) { return fmtVal(v, globalFmt); });
+      };
+    }
+
+    var tooltipCfg = json.tooltip;
+    var showTooltip = tooltipCfg !== false;
+
     var opts = {
       title: title,
       width: container.clientWidth || 800,
       height: height,
       legend: json.legend || { live: false },
       scales: type !== "bar" ? { x: { time: false } } : {},
-      axes: [
-        xAxis,
-        {
-          stroke: theme.text,
-          label: yLabel,
-          ticks: { stroke: theme.grid },
-          grid: { stroke: theme.grid },
-        },
-      ],
+      axes: [xAxis, yAxis],
       series: uSeries,
-      plugins: json.tooltip === false ? [] : [tooltipPlugin(json, type === "bar" ? labels : null)],
+      plugins: showTooltip ? [tooltipPlugin(json, type === "bar" ? labels : null, dsFmts)] : [],
     };
 
     if (type === "bar") {
@@ -184,8 +202,9 @@
     return out;
   }
 
-  function tooltipPlugin(json, barLabels) {
+  function tooltipPlugin(json, barLabels, dsFmts) {
     var tooltipEl;
+    var showAll = json.tooltip && json.tooltip.all;
 
     function initHook(u) {
       tooltipEl = document.createElement("div");
@@ -197,38 +216,80 @@
       });
     }
 
+    function resolveLabel(u, idx) {
+      var rawX = u.data[0][idx];
+      return barLabels ? barLabels[idx] : (json.labels && json.labels[Math.round(rawX)] != null ? json.labels[Math.round(rawX)] : rawX);
+    }
+
     function setCursor(u) {
+      if (showAll) {
+        setCursorAll(u);
+      } else {
+        setCursorSingle(u);
+      }
+    }
+
+    function setCursorSingle(u) {
       var found = false;
       for (var i = 1; i < u.series.length; i++) {
         var idx = u.cursor.idxs && u.cursor.idxs[i];
         if (idx != null) {
           var s = u.series[i];
           var val = u.data[i][idx];
-          var rawX = u.data[0][idx];
-          var label = barLabels ? barLabels[idx] : (json.labels && json.labels[Math.round(rawX)] != null ? json.labels[Math.round(rawX)] : rawX);
           if (val != null && s.show) {
             var color = s.fill || s.stroke;
             tooltipEl.innerHTML =
-              "<strong>" + esc(String(label)) + "</strong><br>" +
+              "<strong>" + esc(String(resolveLabel(u, idx))) + "</strong><br>" +
               '<span style="color:' + color + '">■</span> ' +
-              esc(s.label) + ": " + val.toFixed(2);
-            tooltipEl.style.display = "block";
-            tooltipEl.style.left = (u.cursor.left + 15) + "px";
-            tooltipEl.style.top = (u.cursor.top - 10) + "px";
-
-            var overRect = u.over.getBoundingClientRect();
-            var tipRect = tooltipEl.getBoundingClientRect();
-            if (tipRect.right > overRect.right)
-              tooltipEl.style.left = (u.cursor.left - tipRect.width - 10) + "px";
-            if (tipRect.bottom > overRect.bottom)
-              tooltipEl.style.top = (u.cursor.top - tipRect.height - 10) + "px";
-
+              esc(s.label) + ": " + fmtVal(val, dsFmts[i - 1]);
+            positionTooltip(u);
             found = true;
             break;
           }
         }
       }
       if (!found) tooltipEl.style.display = "none";
+    }
+
+    function setCursorAll(u) {
+      var lines = [];
+      var headerIdx = null;
+      for (var i = 1; i < u.series.length; i++) {
+        var idx = u.cursor.idxs && u.cursor.idxs[i];
+        if (idx != null) {
+          var s = u.series[i];
+          var val = u.data[i][idx];
+          if (headerIdx == null) headerIdx = idx;
+          if (val != null && s.show) {
+            var color = s.fill || s.stroke;
+            lines.push(
+              '<span style="color:' + color + '">■</span> ' +
+              esc(s.label) + ": " + fmtVal(val, dsFmts[i - 1])
+            );
+          }
+        }
+      }
+      if (lines.length > 0) {
+        tooltipEl.innerHTML =
+          "<strong>" + esc(String(resolveLabel(u, headerIdx))) + "</strong><br>" +
+          lines.join("<br>");
+        positionTooltip(u);
+      } else {
+        tooltipEl.style.display = "none";
+      }
+    }
+
+    function positionTooltip(u) {
+      tooltipEl.style.display = "block";
+      tooltipEl.style.left = (u.cursor.left + 15) + "px";
+      tooltipEl.style.top = (u.cursor.top - 10) + "px";
+
+      var overRect = u.over.getBoundingClientRect();
+      var tipRect = tooltipEl.getBoundingClientRect();
+      if (tipRect.right > overRect.right)
+        tooltipEl.style.left = (u.cursor.left - tipRect.width - 10) + "px";
+      if (tipRect.bottom > overRect.bottom)
+        tooltipEl.style.top = (u.cursor.top - tipRect.height - 10) + "px";
     }
 
     return { hooks: { init: initHook, setCursor: setCursor } };
