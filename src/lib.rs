@@ -1,4 +1,4 @@
-use maud::{html, PreEscaped};
+use maud::{PreEscaped, html};
 use mdbook_preprocessor::book::Book;
 use mdbook_preprocessor::errors::Result;
 use mdbook_preprocessor::{Preprocessor, PreprocessorContext};
@@ -161,4 +161,3 @@ fn resolve_data_path(data_path: &str, chapter_dir: &Path) -> PathBuf {
         chapter_dir.join(p)
     }
 }
-
