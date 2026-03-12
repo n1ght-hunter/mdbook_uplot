@@ -21,13 +21,234 @@
 
     if (!chartJson.labels || !chartJson.datasets) return;
 
-    var type = chartJson.type || "bar";
-    switch (type) {
-      case "line":    renderChart(container, chartJson, "line"); break;
-      case "area":    renderChart(container, chartJson, "area"); break;
-      case "scatter": renderChart(container, chartJson, "scatter"); break;
-      case "bar":
-      default:        renderChart(container, chartJson, "bar"); break;
+    var editable = chartJson.editable === true;
+    var codeOpt = chartJson.code;
+    var codeCfg = null;
+    if (codeOpt === false && !editable) {
+      codeCfg = null;
+    } else if (codeOpt && typeof codeOpt === "object") {
+      codeCfg = {
+        position: codeOpt.position || "below",
+        collapsible: codeOpt.collapsible !== false,
+        open: codeOpt.open === true
+      };
+    } else {
+      codeCfg = { position: null, collapsible: true, open: false };
+    }
+
+    var chartView = document.createElement("div");
+    chartView.className = "uplot-view";
+    container.appendChild(chartView);
+
+    var state = createChart(chartView, chartJson);
+
+    if (editable) {
+      var toolbar = document.createElement("div");
+      toolbar.className = "uplot-toolbar";
+      container.insertBefore(toolbar, chartView);
+
+      var panels = [];
+      function addTab(label, el) {
+        var btn = document.createElement("button");
+        btn.textContent = label;
+        toolbar.appendChild(btn);
+        el.style.display = "none";
+        container.appendChild(el);
+        panels.push({ btn: btn, el: el });
+        btn.addEventListener("click", function () {
+          for (var j = 0; j < panels.length; j++) {
+            panels[j].el.style.display = "none";
+            panels[j].btn.className = "";
+          }
+          el.style.display = "";
+          btn.className = "active";
+          if (el === chartView) state.resize();
+        });
+        return btn;
+      }
+
+      container.removeChild(chartView);
+      var btnChart = addTab("Chart", chartView);
+
+      var editWrap = document.createElement("div");
+      editWrap.className = "uplot-editor-wrap";
+
+      var editorBox = document.createElement("div");
+      editorBox.className = "uplot-editor";
+
+      var pre = document.createElement("pre");
+      pre.className = "uplot-editor-highlight";
+
+      var textarea = document.createElement("textarea");
+      textarea.className = "uplot-editor-input";
+      var jsonStr = JSON.stringify(chartJson, null, 2);
+      textarea.value = jsonStr;
+      textarea.spellcheck = false;
+
+      editorBox.appendChild(pre);
+      editorBox.appendChild(textarea);
+      editWrap.appendChild(editorBox);
+
+      var statusBar = document.createElement("div");
+      statusBar.className = "uplot-editor-status";
+
+      var errorEl = document.createElement("div");
+      errorEl.className = "uplot-edit-error";
+      errorEl.style.display = "none";
+      statusBar.appendChild(errorEl);
+
+      var resetBtn = document.createElement("button");
+      resetBtn.className = "uplot-reset-btn";
+      resetBtn.textContent = "Reset";
+      statusBar.appendChild(resetBtn);
+
+      editWrap.appendChild(statusBar);
+
+      function syncHighlight() {
+        pre.innerHTML = syntaxHighlight(textarea.value) + "\n";
+      }
+
+      function syncSize() {
+        textarea.style.height = "auto";
+        var h = Math.max(textarea.scrollHeight, 120);
+        textarea.style.height = h + "px";
+        pre.style.height = h + "px";
+      }
+
+      function syncScroll() {
+        pre.scrollTop = textarea.scrollTop;
+        pre.scrollLeft = textarea.scrollLeft;
+      }
+
+      syncHighlight();
+      setTimeout(syncSize, 0);
+
+      textarea.addEventListener("scroll", syncScroll);
+
+      textarea.addEventListener("keydown", function (e) {
+        if (e.key === "Tab") {
+          e.preventDefault();
+          var s = textarea.selectionStart;
+          var end = textarea.selectionEnd;
+          textarea.value = textarea.value.substring(0, s) + "  " + textarea.value.substring(end);
+          textarea.selectionStart = textarea.selectionEnd = s + 2;
+          textarea.dispatchEvent(new Event("input"));
+        }
+      });
+
+      var timer = null;
+      textarea.addEventListener("input", function () {
+        syncHighlight();
+        syncSize();
+        clearTimeout(timer);
+        timer = setTimeout(function () {
+          var newJson;
+          try {
+            newJson = JSON.parse(textarea.value);
+          } catch (e) {
+            errorEl.textContent = e.message;
+            errorEl.style.display = "block";
+            return;
+          }
+          errorEl.style.display = "none";
+          if (!newJson.labels || !newJson.datasets) return;
+          state.destroy();
+          chartView.innerHTML = "";
+          state = createChart(chartView, newJson);
+        }, 400);
+      });
+
+      resetBtn.addEventListener("click", function () {
+        textarea.value = jsonStr;
+        syncHighlight();
+        syncSize();
+        errorEl.style.display = "none";
+        state.destroy();
+        chartView.innerHTML = "";
+        state = createChart(chartView, chartJson);
+      });
+
+      addTab("Edit", editWrap);
+      btnChart.className = "active";
+      chartView.style.display = "";
+      return;
+    }
+
+    if (!codeCfg) return;
+
+    var codeEl = document.createElement("div");
+    codeEl.className = "uplot-code-block";
+    codeEl.appendChild(jsonTree(chartJson, true));
+
+    var pos = codeCfg.position;
+
+    if (pos === "side") {
+      var sideWrap = document.createElement("div");
+      sideWrap.className = "uplot-side";
+      container.removeChild(chartView);
+
+      var sideLeft = document.createElement("div");
+      sideLeft.className = "uplot-side-chart";
+      sideLeft.appendChild(chartView);
+
+      var sideRight = document.createElement("div");
+      sideRight.className = "uplot-side-code";
+      sideRight.appendChild(codeEl);
+
+      sideWrap.appendChild(sideLeft);
+      sideWrap.appendChild(sideRight);
+      container.appendChild(sideWrap);
+      setTimeout(function () { state.resize(); }, 0);
+    } else if (pos === "above" || pos === "below") {
+      if (codeCfg.collapsible) {
+        var details = document.createElement("details");
+        if (codeCfg.open) details.open = true;
+        var summary = document.createElement("summary");
+        summary.textContent = "Show code";
+        details.appendChild(summary);
+        details.appendChild(codeEl);
+        if (pos === "above") {
+          container.insertBefore(details, chartView);
+        } else {
+          container.appendChild(details);
+        }
+      } else {
+        if (pos === "above") {
+          container.insertBefore(codeEl, chartView);
+        } else {
+          container.appendChild(codeEl);
+        }
+      }
+    } else {
+      var toolbar = document.createElement("div");
+      toolbar.className = "uplot-toolbar";
+      container.insertBefore(toolbar, chartView);
+
+      var panels = [];
+      function addCodeTab(label, el) {
+        var btn = document.createElement("button");
+        btn.textContent = label;
+        toolbar.appendChild(btn);
+        el.style.display = "none";
+        container.appendChild(el);
+        panels.push({ btn: btn, el: el });
+        btn.addEventListener("click", function () {
+          for (var j = 0; j < panels.length; j++) {
+            panels[j].el.style.display = "none";
+            panels[j].btn.className = "";
+          }
+          el.style.display = "";
+          btn.className = "active";
+          if (el === chartView) state.resize();
+        });
+        return btn;
+      }
+
+      container.removeChild(chartView);
+      var btnChart = addCodeTab("Chart", chartView);
+      addCodeTab("Code", codeEl);
+      btnChart.className = "active";
+      chartView.style.display = "";
     }
   }
 
@@ -39,7 +260,8 @@
     return s;
   }
 
-  function renderChart(container, json, type) {
+  function createChart(container, json) {
+    var type = json.type || "bar";
     var labels = json.labels || [];
     var datasets = json.datasets || [];
     var title = json.title || "";
@@ -49,7 +271,7 @@
 
     if (labels.length === 0 || datasets.length === 0) {
       container.innerHTML = "<p><em>No data available.</em></p>";
-      return;
+      return { destroy: function () {}, resize: function () {} };
     }
 
     var hasStringLabels = typeof labels[0] === "string";
@@ -131,6 +353,17 @@
       }
     });
     ro.observe(container);
+
+    return {
+      destroy: function () {
+        ro.disconnect();
+        chart.destroy();
+      },
+      resize: function () {
+        var w = container.clientWidth;
+        if (w > 0) chart.setSize({ width: w, height: height });
+      },
+    };
   }
 
   function buildSeries(ds, color, type, index) {
@@ -313,6 +546,100 @@
 
   function nextColor(i) { return PALETTE[i % PALETTE.length]; }
   function esc(s) { return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+
+  function jsonTree(val, expanded) {
+    if (val === null) return spanCls("jt-null", "null");
+    if (typeof val === "boolean") return spanCls("jt-bool", String(val));
+    if (typeof val === "number") return spanCls("jt-num", String(val));
+    if (typeof val === "string") return spanCls("jt-str", '"' + esc(val) + '"');
+
+    var isArr = Array.isArray(val);
+    var keys = isArr ? null : Object.keys(val);
+    var len = isArr ? val.length : keys.length;
+
+    var wrap = document.createElement("span");
+    wrap.className = "jt-node";
+
+    var toggle = document.createElement("span");
+    toggle.className = "jt-toggle";
+    toggle.textContent = expanded ? "\u25BC " : "\u25B6 ";
+    wrap.appendChild(toggle);
+
+    var bracket = document.createElement("span");
+    bracket.className = "jt-bracket";
+    bracket.textContent = isArr ? "[" : "{";
+    wrap.appendChild(bracket);
+
+    var preview = document.createElement("span");
+    preview.className = "jt-preview";
+    preview.textContent = " " + len + (isArr ? " items" : " keys") + " ";
+    wrap.appendChild(preview);
+
+    var children = document.createElement("div");
+    children.className = "jt-children";
+    children.style.display = expanded ? "" : "none";
+    preview.style.display = expanded ? "none" : "";
+
+    var entries = isArr ? val : keys;
+    for (var i = 0; i < entries.length; i++) {
+      var row = document.createElement("div");
+      row.className = "jt-row";
+      if (!isArr) {
+        var k = document.createElement("span");
+        k.className = "jt-key";
+        k.textContent = '"' + entries[i] + '"';
+        row.appendChild(k);
+        row.appendChild(document.createTextNode(": "));
+      }
+      var child = isArr ? val[i] : val[entries[i]];
+      var childExpanded = expanded && (isArr ? false : true);
+      row.appendChild(jsonTree(child, childExpanded));
+      if (i < entries.length - 1) row.appendChild(document.createTextNode(","));
+      children.appendChild(row);
+    }
+    wrap.appendChild(children);
+
+    var closeBracket = document.createElement("span");
+    closeBracket.className = "jt-bracket";
+    closeBracket.textContent = isArr ? "]" : "}";
+    wrap.appendChild(closeBracket);
+
+    toggle.addEventListener("click", function () {
+      var open = children.style.display !== "none";
+      children.style.display = open ? "none" : "";
+      preview.style.display = open ? "" : "none";
+      toggle.textContent = open ? "\u25B6 " : "\u25BC ";
+    });
+
+    return wrap;
+  }
+
+  function spanCls(cls, text) {
+    var s = document.createElement("span");
+    s.className = cls;
+    s.textContent = text;
+    return s;
+  }
+
+  function syntaxHighlight(json) {
+    var escaped = json.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    return escaped.replace(
+      /("(?:\\.|[^"\\])*")\s*:/g,
+      '<span class="jt-key">$1</span>:'
+    ).replace(
+      /:\s*("(?:\\.|[^"\\])*")/g,
+      function (m, str) { return ': <span class="jt-str">' + str + "</span>"; }
+    ).replace(
+      /:\s*(-?\d+\.?\d*(?:e[+-]?\d+)?)/gi,
+      ': <span class="jt-num">$1</span>'
+    ).replace(
+      /:\s*(true|false)/g,
+      ': <span class="jt-bool">$1</span>'
+    ).replace(
+      /:\s*(null)/g,
+      ': <span class="jt-null">$1</span>'
+    );
+  }
 
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", init);

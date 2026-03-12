@@ -2,50 +2,64 @@
 
 An [mdbook](https://rust-lang.github.io/mdBook/) preprocessor for embedding interactive [uPlot](https://github.com/leeoniya/uPlot) charts in your book.
 
+Write chart data as fenced `` ```uplot `` code blocks in your markdown and mdbook-uplot renders them as interactive charts.
+
+**[Live documentation and examples](https://n1ght-hunter.github.io/mdbook_uplot/)**
+
 ## Installation
 
-### Using `cargo-binstall`
+### Shell (macOS/Linux)
 
-If you have [cargo-binstall](https://github.com/cargo-bins/cargo-binstall) already:
-
-```
-cargo binstall mdbook-uplot
+```sh
+curl --proto '=https' --tlsv1.2 -LsSf https://github.com/n1ght-hunter/mdbook_uplot/releases/latest/download/mdbook_uplot-installer.sh | sh
 ```
 
-### Manually
+### PowerShell (Windows)
 
-Binary releases are available on the [Releases page](https://github.com/n1ght-hunter/mdbook_uplot/releases).
-Download the appropriate binary for your platform, make it executable, and add it to your PATH.
+```powershell
+powershell -ExecutionPolicy ByPass -c "irm https://github.com/n1ght-hunter/mdbook_uplot/releases/latest/download/mdbook_uplot-installer.ps1 | iex"
+```
 
+### cargo-binstall
+
+```sh
+cargo binstall mdbook_uplot
+```
+
+### From crates.io
+
+```sh
+cargo install mdbook_uplot
+```
 
 ## Setup
 
+Run the install command to configure your book:
+
 ```sh
-mdbook-uplot install /path/to/book
+mdbook-uplot install path/to/book
 ```
 
-The `install` command updates `book.toml` (preprocessor config, additional-js/css) and writes asset files and CDN links to `theme/head.hbs`.
+This adds `[preprocessor.uplot]` to `book.toml`, registers the JS/CSS assets, and writes asset files. Assets are kept up to date automatically on every `mdbook build`.
 
 ## Usage
 
-
-In your markdown, use a fenced code block with the `uplot` language tag.
-
-### Inline data
+Use a fenced code block with the `uplot` language tag:
 
 ````markdown
 ```uplot
 {
-  "labels": ["a", "b", "c"],
+  "type": "line",
+  "labels": ["Jan", "Feb", "Mar", "Apr", "May"],
   "datasets": [
-    { "label": "Series 1", "data": [10, 20, 30], "color": "#e74c3c" }
-  ],
-  "axes": { "x": "Category", "y": "Value" }
+    { "label": "Revenue", "data": [30, 45, 38, 52, 48], "color": "#1f77b4" },
+    { "label": "Costs", "data": [20, 25, 22, 30, 28], "color": "#ff7f0e" }
+  ]
 }
 ```
 ````
 
-### External data file
+You can also reference an external JSON file instead of inlining data:
 
 ````markdown
 ```uplot
@@ -55,10 +69,32 @@ In your markdown, use a fenced code block with the `uplot` language tag.
 
 Paths are resolved relative to the chapter's source directory.
 
+## Chart types
+
+Set `"type"` to one of: `"bar"` (default), `"line"`, `"area"`, or `"scatter"`.
+
+## Features
+
+| Feature | Example |
+|---------|---------|
+| Axis labels | `"axes": { "x": "Month", "y": "Revenue" }` |
+| Value formatting | `"format": { "prefix": "$", "suffix": "k", "decimals": 1 }` |
+| Tooltip options | `"tooltip": false` or `{ "all": true }` |
+| Legend control | `"legend": { "show": false }` or `{ "live": true }` |
+| Code display | `"code": false`, or `{ "position": "side" }`, `"above"`, `"below"` |
+| Editable playground | `"editable": true` — live JSON editor with syntax highlighting |
+| Custom height | `"height": 250` |
+| uPlot pass-through | `"opts": { "scales": { "y": { "range": [0, 100] } } }` |
+| Dark theme | Automatically adapts to coal, navy, and ayu themes |
+
+See the **[documentation book](https://n1ght-hunter.github.io/mdbook_uplot/)** for full details, live examples, and the customization reference.
+
 ## Contributing
+
 Contributions are welcome! Please open an issue or submit a pull request.
 
 ## License
+
 Licensed under either of
 - MIT License (LICENSE-MIT or http://opensource.org/licenses/MIT)
 - Apache License, Version 2.0 (LICENSE-APACHE or http://www.apache.org/licenses/LICENSE-2.0)

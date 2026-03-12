@@ -18,10 +18,10 @@ powershell -ExecutionPolicy ByPass -c "irm https://github.com/n1ght-hunter/mdboo
 cargo binstall mdbook_uplot
 ```
 
-## From source
+## From crates.io
 
 ```sh
-cargo install --git https://github.com/n1ght-hunter/mdbook_uplot
+cargo install mdbook_uplot
 ```
 
 ## Setup
