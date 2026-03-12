@@ -13,7 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - add typos to ci ([#10](https://github.com/n1ght-hunter/mdbook_uplot/pull/10))
 - add ci for testing,audti and dependabot
 - add release plz
-- add chart customization includign showing code
+- add chart customization including showing code
 - add value formatting
 - add support for more charts
 - add changelog to ci
@@ -24,10 +24,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - update book with better install instcutions and usage
 - update preprocssor to vendor and auto setup
+- by default set crosshair to off ([#12](https://github.com/n1ght-hunter/mdbook_uplot/pull/12))
 
 ### Fixed
 
 - fix tooltop distplay logic and make tooltop distplay at the closest data point ([#12](https://github.com/n1ght-hunter/mdbook_uplot/pull/12))
+- fix hover effect on bar charts ([#12](https://github.com/n1ght-hunter/mdbook_uplot/pull/12))
 - fix up ci ([#6](https://github.com/n1ght-hunter/mdbook_uplot/pull/6))
 - fix release pls and add skip commit changelog prefix
 
