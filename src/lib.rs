@@ -6,20 +6,19 @@ use pulldown_cmark::{CodeBlockKind::Fenced, Event, Options, Parser, Tag, TagEnd}
 use serde::Deserialize;
 use std::path::{Path, PathBuf};
 
+pub const UPLOT_JS: &str = include_str!(concat!(env!("OUT_DIR"), "/uplot.min.js"));
+pub const UPLOT_CSS: &str = include_str!(concat!(env!("OUT_DIR"), "/uplot.min.css"));
 pub const BARS_JS: &str = include_str!("../assets/uplot-bars.js");
-pub const CHARTS_JS: &str = include_str!("../assets/uplot-charts.js");
 pub const CHARTS_CSS: &str = include_str!("../assets/uplot-charts.css");
+pub const INIT_JS: &str = include_str!("../assets/uplot-init.js");
 
 pub const ASSET_FILES: &[(&str, &str)] = &[
-    ("uplot-bars.js", BARS_JS),
-    ("uplot-charts.js", CHARTS_JS),
-    ("uplot-charts.css", CHARTS_CSS),
+    ("assets/uplot/uplot.min.js", UPLOT_JS),
+    ("assets/uplot/uplot.min.css", UPLOT_CSS),
+    ("assets/uplot/uplot-bars.js", BARS_JS),
+    ("assets/uplot/uplot-charts.css", CHARTS_CSS),
+    ("assets/uplot/uplot-init.js", INIT_JS),
 ];
-
-pub const HEAD_HBS: &str = concat!(
-    "<link rel=\"stylesheet\" href=\"https://unpkg.com/uplot@1.6.32/dist/uPlot.min.css\">\n",
-    "<script src=\"https://unpkg.com/uplot@1.6.32/dist/uPlot.iife.min.js\"></script>\n",
-);
 
 pub struct Uplot;
 
