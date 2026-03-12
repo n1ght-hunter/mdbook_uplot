@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.0](https://github.com/n1ght-hunter/mdbook_uplot/compare/v0.1.0...v0.2.0) - 2026-03-12
+
+### Other
+
+- add release plz
+- add chart customization includign showing code
+- add value formatting
+- add support for more charts
+- update book with better install instcutions and usage
+- add changelog to ci
+- add mbbook for showing usage
+- update preprocssor to vendor and auto setup
+- remove oranda
+- add git cliff
+
 ## [0.1.0] - 2026-03-11
 
 ### Added
