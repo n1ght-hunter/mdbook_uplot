@@ -1,24 +1,48 @@
 # Installation
 
-## Using `cargo-binstall`
-
-If you have [cargo-binstall](https://github.com/cargo-bins/cargo-binstall) already:
+## Shell (macOS/Linux)
 
 ```sh
-cargo binstall mdbook-uplot
+curl --proto '=https' --tlsv1.2 -LsSf https://github.com/n1ght-hunter/mdbook_uplot/releases/latest/download/mdbook_uplot-installer.sh | sh
 ```
 
-## Manually
+## PowerShell (Windows)
 
-Binary releases are available on the [Releases page](https://github.com/n1ght-hunter/mdbook_uplot/releases).
-Download the appropriate binary for your platform, make it executable, and add it to your PATH.
+```powershell
+powershell -ExecutionPolicy ByPass -c "irm https://github.com/n1ght-hunter/mdbook_uplot/releases/latest/download/mdbook_uplot-installer.ps1 | iex"
+```
+
+## cargo-binstall
+
+```sh
+cargo binstall mdbook_uplot
+```
+
+## From source
+
+```sh
+cargo install --git https://github.com/n1ght-hunter/mdbook_uplot
+```
 
 ## Setup
 
-Run the install command pointing at your book directory:
+Add the preprocessor to your `book.toml`:
+
+```toml
+[preprocessor.uplot]
+```
+
+Then either run `mdbook build` twice (the first run writes the asset files and updates
+`book.toml`, the second picks up the changes), or add the following to `book.toml` manually:
+
+```toml
+[output.html]
+additional-js = ["assets/uplot/uplot.min.js", "assets/uplot/uplot-bars.js", "assets/uplot/uplot-init.js"]
+additional-css = ["assets/uplot/uplot.min.css", "assets/uplot/uplot-charts.css"]
+```
+
+Alternatively, run the install command to do everything in one step:
 
 ```sh
 mdbook-uplot install /path/to/book
 ```
-
-The `install` command updates `book.toml` (preprocessor config, additional-js/css) and writes asset files and CDN links to `theme/head.hbs`.
