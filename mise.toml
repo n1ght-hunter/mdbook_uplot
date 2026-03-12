@@ -1,4 +1,3 @@
 [tools]
 cargo-dist = "latest"
 git-cliff = "latest"
-"github:axodotdev/oranda" = "latest"
