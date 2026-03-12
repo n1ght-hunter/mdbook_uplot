@@ -49,6 +49,15 @@ jobs:
       - name: Clippy check
         run: cargo clippy --all-targets --all-features --workspace -- -D warnings
 
+  typos:
+    name: Typos
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Check spelling
+        uses: crate-ci/typos@master
+
   docs:
     name: Docs
     runs-on: ubuntu-latest
