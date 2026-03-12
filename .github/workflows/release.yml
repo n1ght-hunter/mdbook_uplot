@@ -213,6 +213,8 @@ jobs:
             ${{ env.BUILD_MANIFEST_NAME }}
   # Determines if we should publish/announce
   host:
+    permissions:
+      contents: write
     needs:
       - plan
       - build-local-artifacts
