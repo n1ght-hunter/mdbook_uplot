@@ -1,6 +1,6 @@
 use mdbook_preprocessor::Preprocessor;
-use mdbook_uplot::{Uplot, ASSET_FILES};
-use toml_edit::{value, Array, DocumentMut, Item, Table, Value};
+use mdbook_uplot::{ASSET_FILES, Uplot};
+use toml_edit::{Array, DocumentMut, Item, Table, Value, value};
 
 use std::{env, fs, io, path::Path, process};
 
@@ -85,7 +85,9 @@ fn ensure_assets(root: &Path) {
 
     if changed {
         fs::write(&config_path, doc.to_string()).expect("can't write book.toml");
-        tracing::error!("book.toml was updated with new assets, but you need to re-run 'mdbook build' to pick up the changes");
+        tracing::error!(
+            "book.toml was updated with new assets, but you need to re-run 'mdbook build' to pick up the changes"
+        );
         process::exit(1);
     }
 }
@@ -173,10 +175,7 @@ fn add_additional_file(doc: &mut DocumentMut, file_type: &str, file: &str) -> bo
 }
 
 fn get_additional_array<'a>(doc: &'a DocumentMut, key: &str) -> Option<&'a Array> {
-    doc.get("output")?
-        .get("html")?
-        .get(key)?
-        .as_array()
+    doc.get("output")?.get("html")?.get(key)?.as_array()
 }
 
 fn has_file(arr: &Option<&Array>, file: &str) -> bool {
