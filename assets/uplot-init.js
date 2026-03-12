@@ -331,12 +331,13 @@
       plugins: showTooltip ? [tooltipPlugin(json, type === "bar" ? labels : null, dsFmts)] : [],
     };
 
+    opts.cursor = { x: false, y: false };
+
     if (type === "bar") {
       opts.plugins.unshift(seriesBarsPlugin({ ori: 0, dir: 1, radius: 0.3 }));
     }
 
     if (type === "scatter") {
-      opts.cursor = opts.cursor || {};
       opts.cursor.points = { show: false };
     }
 
