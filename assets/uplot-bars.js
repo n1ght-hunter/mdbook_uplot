@@ -178,6 +178,7 @@ function seriesBarsPlugin(opts) {
   }
 
   let qt;
+  let hoverRect = null;
 
   return {
     hooks: {
@@ -186,6 +187,27 @@ function seriesBarsPlugin(opts) {
         qt.clear();
         u.series.forEach(s => { s._paths = null; });
         barsPctLayout = [null].concat(distrTwo(u.data[0].length, u.series.length - 1 - ignore.length, !stacked, groupWidth));
+      },
+      draw: u => {
+        if (!hoverRect) return;
+        let ctx = u.ctx;
+        let x = u.bbox.left + hoverRect.x;
+        let y = u.bbox.top + hoverRect.y;
+        let w = hoverRect.w;
+        let h = hoverRect.h;
+        let r = Math.min(radius * w, w / 2, h / 2);
+
+        ctx.save();
+        ctx.fillStyle = "rgba(255,255,255,0.2)";
+        ctx.beginPath();
+        ctx.moveTo(x + r, y);
+        ctx.arcTo(x + w, y, x + w, y + h, r);
+        ctx.arcTo(x + w, y + h, x, y + h, 0);
+        ctx.arcTo(x, y + h, x, y, 0);
+        ctx.arcTo(x, y, x + w, y, r);
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
       },
     },
     opts: (u, opts) => {
@@ -210,21 +232,16 @@ function seriesBarsPlugin(opts) {
                 if (pointWithin(cx, cy, o.x, o.y, o.x + o.w, o.y + o.h))
                   hRect = o;
               });
+
+              let prev = hoverRect;
+              hoverRect = hRect;
+              if (hRect !== prev) {
+                u.redraw(false, false);
+              }
             }
             return hRect && seriesIdx == hRect.sidx ? hRect.didx : null;
           },
-          points: {
-            fill: "rgba(255,255,255, 0.3)",
-            bbox: (u, seriesIdx) => {
-              let isHovered = hRect && seriesIdx == hRect.sidx;
-              return {
-                left:   isHovered ? hRect.x / pxRatio : -10,
-                top:    isHovered ? hRect.y / pxRatio : -10,
-                width:  isHovered ? hRect.w / pxRatio : 0,
-                height: isHovered ? hRect.h / pxRatio : 0,
-              };
-            }
-          }
+          points: { show: false },
         },
         scales: {
           x: {

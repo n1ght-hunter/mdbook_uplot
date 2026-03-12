@@ -28,9 +28,9 @@ Use `"legend": { "live": true }` to show live values at the cursor position inst
 }
 ```
 
-## Disable crosshair
+## Enable crosshair
 
-Remove the vertical hover line:
+Show vertical and horizontal hover lines (disabled by default):
 
 ```uplot
 {
@@ -39,7 +39,7 @@ Remove the vertical hover line:
   "datasets": [
     { "label": "Series A", "data": [10, 25, 18, 32, 28], "color": "#1f77b4" }
   ],
-  "opts": { "cursor": { "x": false, "y": false } }
+  "opts": { "cursor": { "x": true, "y": true } }
 }
 ```
 
@@ -112,7 +112,7 @@ All fields can be combined:
   "tooltip": false,
   "height": 250,
   "opts": {
-    "cursor": { "x": false, "points": { "show": false } }
+    "cursor": { "points": { "show": false } }
   }
 }
 ```

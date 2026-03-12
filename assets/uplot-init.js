@@ -331,12 +331,13 @@
       plugins: showTooltip ? [tooltipPlugin(json, type === "bar" ? labels : null, dsFmts)] : [],
     };
 
+    opts.cursor = { x: false, y: false };
+
     if (type === "bar") {
       opts.plugins.unshift(seriesBarsPlugin({ ori: 0, dir: 1, radius: 0.3 }));
     }
 
     if (type === "scatter") {
-      opts.cursor = opts.cursor || {};
       opts.cursor.points = { show: false };
     }
 
@@ -450,8 +451,8 @@
     }
 
     function resolveLabel(u, idx) {
-      var rawX = u.data[0][idx];
-      return barLabels ? barLabels[idx] : (json.labels && json.labels[Math.round(rawX)] != null ? json.labels[Math.round(rawX)] : rawX);
+      if (barLabels) return barLabels[idx];
+      return json.labels[idx];
     }
 
     function setCursor(u) {
@@ -475,7 +476,7 @@
               "<strong>" + esc(String(resolveLabel(u, idx))) + "</strong><br>" +
               '<span style="color:' + color + '">■</span> ' +
               esc(s.label) + ": " + fmtVal(val, dsFmts[i - 1]);
-            positionTooltip(u);
+            positionTooltip(u, i, idx);
             found = true;
             break;
           }
@@ -487,12 +488,13 @@
     function setCursorAll(u) {
       var lines = [];
       var headerIdx = null;
+      var headerSi = null;
       for (var i = 1; i < u.series.length; i++) {
         var idx = u.cursor.idxs && u.cursor.idxs[i];
         if (idx != null) {
           var s = u.series[i];
           var val = u.data[i][idx];
-          if (headerIdx == null) headerIdx = idx;
+          if (headerIdx == null) { headerIdx = idx; headerSi = i; }
           if (val != null && s.show) {
             var color = s.fill || s.stroke;
             lines.push(
@@ -506,23 +508,33 @@
         tooltipEl.innerHTML =
           "<strong>" + esc(String(resolveLabel(u, headerIdx))) + "</strong><br>" +
           lines.join("<br>");
-        positionTooltip(u);
+        positionTooltip(u, headerSi, headerIdx);
       } else {
         tooltipEl.style.display = "none";
       }
     }
 
-    function positionTooltip(u) {
+    function positionTooltip(u, seriesIdx, dataIdx) {
       tooltipEl.style.display = "block";
-      tooltipEl.style.left = (u.cursor.left + 15) + "px";
-      tooltipEl.style.top = (u.cursor.top - 10) + "px";
+
+      var left, top;
+      if (barLabels) {
+        left = u.cursor.left;
+        top = u.cursor.top;
+      } else {
+        left = u.valToPos(u.data[0][dataIdx], "x");
+        top = u.valToPos(u.data[seriesIdx][dataIdx], u.series[seriesIdx].scale || "y");
+      }
+
+      tooltipEl.style.left = (left + 15) + "px";
+      tooltipEl.style.top = (top - 10) + "px";
 
       var overRect = u.over.getBoundingClientRect();
       var tipRect = tooltipEl.getBoundingClientRect();
       if (tipRect.right > overRect.right)
-        tooltipEl.style.left = (u.cursor.left - tipRect.width - 10) + "px";
+        tooltipEl.style.left = (left - tipRect.width - 10) + "px";
       if (tipRect.bottom > overRect.bottom)
-        tooltipEl.style.top = (u.cursor.top - tipRect.height - 10) + "px";
+        tooltipEl.style.top = (top - tipRect.height - 10) + "px";
     }
 
     return { hooks: { init: initHook, setCursor: setCursor } };
