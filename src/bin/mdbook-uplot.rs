@@ -52,10 +52,17 @@ fn handle_preprocessing() -> mdbook_preprocessor::errors::Result<()> {
     Ok(())
 }
 
+fn needs_write(filepath: &Path, content: &str) -> bool {
+    match fs::read_to_string(filepath) {
+        Ok(existing) => existing != content,
+        Err(_) => true,
+    }
+}
+
 fn ensure_assets(root: &Path) {
     for &(name, content) in ASSET_FILES {
         let filepath = root.join(name);
-        if !filepath.exists() {
+        if needs_write(&filepath, content) {
             if let Some(parent) = filepath.parent() {
                 fs::create_dir_all(parent).expect("can't create asset directory");
             }
@@ -115,14 +122,14 @@ fn handle_install(dir: &Path) -> ! {
 
     for &(name, content) in ASSET_FILES {
         let filepath = dir.join(name);
-        if filepath.exists() {
-            tracing::debug!("'{name}' already exists, skipping");
-        } else {
+        if needs_write(&filepath, content) {
             if let Some(parent) = filepath.parent() {
                 fs::create_dir_all(parent).expect("can't create asset directory");
             }
             tracing::info!("Writing '{name}'");
             fs::write(&filepath, content).expect("can't write asset file");
+        } else {
+            tracing::debug!("'{name}' is up to date, skipping");
         }
     }
 

@@ -26,4 +26,7 @@ fn main() {
     }
 
     println!("cargo:rerun-if-changed=build.rs");
+    println!("cargo:rerun-if-changed=assets/uplot-init.js");
+    println!("cargo:rerun-if-changed=assets/uplot-bars.js");
+    println!("cargo:rerun-if-changed=assets/uplot-charts.css");
 }
