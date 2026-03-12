@@ -5,6 +5,39 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.0](https://github.com/n1ght-hunter/mdbook_uplot/compare/v0.1.0...v0.2.0) - 2026-03-12
+
+### Added
+
+- add image to readme ([#11](https://github.com/n1ght-hunter/mdbook_uplot/pull/11))
+- add typos to ci ([#10](https://github.com/n1ght-hunter/mdbook_uplot/pull/10))
+- add ci for testing,audti and dependabot
+- add release plz
+- add chart customization including showing code
+- add value formatting
+- add support for more charts
+- add changelog to ci
+- add mbbook for showing usage
+- add git cliff
+
+### Changed
+
+- update book with better install instcutions and usage
+- update preprocssor to vendor and auto setup
+- by default set crosshair to off ([#12](https://github.com/n1ght-hunter/mdbook_uplot/pull/12))
+
+### Fixed
+
+- fix tooltop distplay logic and make tooltop distplay at the closest data point ([#12](https://github.com/n1ght-hunter/mdbook_uplot/pull/12))
+- fix hover effect on bar charts ([#12](https://github.com/n1ght-hunter/mdbook_uplot/pull/12))
+- fix up ci ([#6](https://github.com/n1ght-hunter/mdbook_uplot/pull/6))
+- fix release pls and add skip commit changelog prefix
+
+### Removed
+
+- Remove cliff and just use release plz ([#8](https://github.com/n1ght-hunter/mdbook_uplot/pull/8))
+- remove oranda
+
 ## [0.1.0] - 2026-03-11
 
 ### Added
