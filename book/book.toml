@@ -1,0 +1,13 @@
+[book]
+title = "mdbook-uplot"
+authors = ["n1ght-hunter"]
+src = "src"
+
+[preprocessor.uplot]
+command = "cargo run --bin mdbook-uplot --"
+
+[output]
+
+[output.html]
+additional-js = ["assets/uplot/uplot.min.js", "assets/uplot/uplot-bars.js", "assets/uplot/uplot-init.js"]
+additional-css = ["assets/uplot/uplot.min.css", "assets/uplot/uplot-charts.css"]

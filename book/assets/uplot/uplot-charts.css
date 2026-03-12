@@ -1,0 +1,47 @@
+.uplot-chart {
+  margin: 1.5em 0;
+  width: 100%;
+}
+
+.uplot-group-chart {
+  margin: 1em 0 2em;
+}
+
+.uplot-no-data,
+.uplot-error {
+  padding: 2em;
+  text-align: center;
+  border: 1px dashed var(--sidebar-bg, #ccc);
+  border-radius: 4px;
+}
+
+.uplot-tooltip {
+  position: absolute;
+  z-index: 100;
+  padding: 6px 10px;
+  font-size: 0.85em;
+  line-height: 1.5;
+  border-radius: 4px;
+  pointer-events: none;
+  white-space: nowrap;
+  background: rgba(30, 30, 30, 0.92);
+  color: #eee;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.light .uplot-tooltip,
+.rust .uplot-tooltip {
+  background: rgba(255, 255, 255, 0.95);
+  color: #333;
+  border-color: rgba(0, 0, 0, 0.15);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+}
+
+.uplot .u-legend {
+  font-size: 0.85em;
+}
+
+.uplot .u-legend .u-series > * {
+  cursor: pointer;
+}

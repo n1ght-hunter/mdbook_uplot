@@ -1,28 +1,17 @@
-/// Generic uPlot chart renderer for mdbook-uplot.
-///
-/// JSON schema (Chart.js-inspired):
-/// {
-///   "title": "Chart Title",
-///   "labels": ["x1", "x2", "x3"],
-///   "datasets": [
-///     { "label": "series A", "data": [1.0, 2.0, 3.0], "color": "#2ca02c" },
-///     { "label": "series B", "data": [1.5, 2.5, 3.5], "color": "#1f77b4" }
-///   ],
-///   "axes": { "x": "Parameter", "y": "Time (ns)" }
-/// }
-
 (function () {
   "use strict";
 
-  document.addEventListener("DOMContentLoaded", function () {
-    document.querySelectorAll(".uplot-chart").forEach(initChart);
-  });
+  function init() {
+    var charts = document.querySelectorAll(".uplot-chart");
+    if (charts.length === 0) return;
+    charts.forEach(initChart);
+  }
 
   function initChart(container) {
-    const dataEl = container.querySelector("script.uplot-data");
+    var dataEl = container.querySelector("script.uplot-data");
     if (!dataEl) return;
 
-    let chartJson;
+    var chartJson;
     try {
       chartJson = JSON.parse(dataEl.textContent);
     } catch (e) {
@@ -36,23 +25,23 @@
   }
 
   function renderBarChart(container, json) {
-    const labels = json.labels || [];
-    const datasets = json.datasets || [];
-    const title = json.title || "";
-    const xLabel = json.axes?.x || "";
-    const yLabel = json.axes?.y || "";
+    var labels = json.labels || [];
+    var datasets = json.datasets || [];
+    var title = json.title || "";
+    var xLabel = (json.axes && json.axes.x) || "";
+    var yLabel = (json.axes && json.axes.y) || "";
 
     if (labels.length === 0 || datasets.length === 0) {
       container.innerHTML = "<p><em>No data available.</em></p>";
       return;
     }
 
-    // Build uPlot columnar data: [labels, ...datasetValues]
-    const uData = [labels];
-    const uSeries = [{ label: xLabel || "x" }];
+    var uData = [labels];
+    var uSeries = [{ label: xLabel || "x" }];
 
-    for (const ds of datasets) {
-      uData.push(ds.data || labels.map(() => null));
+    for (var i = 0; i < datasets.length; i++) {
+      var ds = datasets[i];
+      uData.push(ds.data || labels.map(function () { return null; }));
       uSeries.push({
         label: ds.label || "series",
         fill: ds.color || nextColor(uSeries.length - 1),
@@ -61,19 +50,16 @@
       });
     }
 
-    const theme = detectTheme();
-    const height = json.height || 350;
+    var theme = detectTheme();
+    var height = json.height || 350;
 
-    const opts = {
+    var opts = {
       title: title,
       width: container.clientWidth || 800,
       height: height,
       legend: { live: false },
       axes: [
-        {
-          stroke: theme.text,
-          label: xLabel,
-        },
+        { stroke: theme.text, label: xLabel },
         {
           stroke: theme.text,
           label: yLabel,
@@ -83,20 +69,16 @@
       ],
       series: uSeries,
       plugins: [
-        seriesBarsPlugin({
-          ori: 0,
-          dir: 1,
-          radius: 0.3,
-        }),
+        seriesBarsPlugin({ ori: 0, dir: 1, radius: 0.3 }),
         tooltipPlugin(json),
       ],
     };
 
-    const chart = new uPlot(opts, uData, container);
+    var chart = new uPlot(opts, uData, container);
 
-    const ro = new ResizeObserver(entries => {
-      for (const entry of entries) {
-        const w = entry.contentRect.width;
+    var ro = new ResizeObserver(function (entries) {
+      for (var j = 0; j < entries.length; j++) {
+        var w = entries[j].contentRect.width;
         if (w > 0) chart.setSize({ width: w, height: height });
       }
     });
@@ -104,29 +86,28 @@
   }
 
   function tooltipPlugin(json) {
-    let tooltipEl;
-    const suffix = json.axes?.y ? " " + json.axes.y.split("(").pop()?.replace(")", "") : "";
+    var tooltipEl;
 
-    function init(u) {
+    function initHook(u) {
       tooltipEl = document.createElement("div");
       tooltipEl.className = "uplot-tooltip";
       tooltipEl.style.display = "none";
       u.over.appendChild(tooltipEl);
-      u.over.addEventListener("mouseleave", () => {
+      u.over.addEventListener("mouseleave", function () {
         tooltipEl.style.display = "none";
       });
     }
 
     function setCursor(u) {
-      let found = false;
-      for (let i = 1; i < u.series.length; i++) {
-        const idx = u.cursor.idxs?.[i];
+      var found = false;
+      for (var i = 1; i < u.series.length; i++) {
+        var idx = u.cursor.idxs && u.cursor.idxs[i];
         if (idx != null) {
-          const s = u.series[i];
-          const val = u.data[i][idx];
-          const label = u.data[0][idx];
+          var s = u.series[i];
+          var val = u.data[i][idx];
+          var label = u.data[0][idx];
           if (val != null && s.show) {
-            const color = s.fill || s.stroke;
+            var color = s.fill || s.stroke;
             tooltipEl.innerHTML =
               "<strong>" + esc(String(label)) + "</strong><br>" +
               '<span style="color:' + color + '">■</span> ' +
@@ -135,8 +116,8 @@
             tooltipEl.style.left = (u.cursor.left + 15) + "px";
             tooltipEl.style.top = (u.cursor.top - 10) + "px";
 
-            const overRect = u.over.getBoundingClientRect();
-            const tipRect = tooltipEl.getBoundingClientRect();
+            var overRect = u.over.getBoundingClientRect();
+            var tipRect = tooltipEl.getBoundingClientRect();
             if (tipRect.right > overRect.right)
               tooltipEl.style.left = (u.cursor.left - tipRect.width - 10) + "px";
             if (tipRect.bottom > overRect.bottom)
@@ -150,12 +131,12 @@
       if (!found) tooltipEl.style.display = "none";
     }
 
-    return { hooks: { init, setCursor } };
+    return { hooks: { init: initHook, setCursor: setCursor } };
   }
 
   function detectTheme() {
-    const el = document.documentElement;
-    const isDark = el.classList.contains("coal")
+    var el = document.documentElement;
+    var isDark = el.classList.contains("coal")
       || el.classList.contains("navy")
       || el.classList.contains("ayu");
     return {
@@ -164,11 +145,17 @@
     };
   }
 
-  const PALETTE = [
+  var PALETTE = [
     "#2ca02c", "#1f77b4", "#ff7f0e", "#d62728", "#9467bd",
     "#17becf", "#e377c2", "#bcbd22", "#98df8a", "#888888",
   ];
 
   function nextColor(i) { return PALETTE[i % PALETTE.length]; }
   function esc(s) { return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init);
+  } else {
+    init();
+  }
 })();

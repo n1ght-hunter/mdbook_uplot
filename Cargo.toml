@@ -7,7 +7,6 @@ license = "MIT OR Apache-2.0"
 repository = "https://github.com/n1ght-hunter/mdbook_uplot"
 
 [dependencies]
-clap = "4.5.60"
 maud = "0.27.0"
 mdbook-preprocessor = "0.5.2"
 pulldown-cmark = "0.13.1"
