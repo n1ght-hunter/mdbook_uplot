@@ -6,6 +6,8 @@ Write chart data as fenced `` ```uplot `` code blocks in your markdown and mdboo
 
 **[Live documentation and examples](https://n1ght-hunter.github.io/mdbook_uplot/)**
 
+![Preview](.github/images/preview.png)
+
 ## Installation
 
 ### Shell (macOS/Linux)
