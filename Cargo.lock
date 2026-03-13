@@ -214,7 +214,7 @@ dependencies = [
 
 [[package]]
 name = "mdbook_uplot"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "maud",
  "mdbook-preprocessor",
