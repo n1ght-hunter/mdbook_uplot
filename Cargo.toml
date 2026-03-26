@@ -9,7 +9,7 @@ repository = "https://github.com/n1ght-hunter/mdbook_uplot"
 [dependencies]
 maud = "0.27.0"
 mdbook-preprocessor = "0.5.2"
-pulldown-cmark = "0.13.1"
+pulldown-cmark = "0.13.3"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 toml_edit = "0.23.9"
